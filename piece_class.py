@@ -174,6 +174,7 @@ class Rook(Chess_Piece):
         self.possible_moves = path
         self.clears_check_path(path, turn)
         self.location = location
+        self.point_value = 5
         
         return path, self.possible_moves, self.checked_path, long_path
 
@@ -187,6 +188,7 @@ class Bishop(Chess_Piece):
         self.possible_moves = path
         self.clears_check_path(path, turn)
         self.location = location
+        self.point_value = 3
         
         return path, self.possible_moves, self.checked_path, long_path
                   
@@ -204,6 +206,7 @@ class Knight(Chess_Piece):
         self.possible_moves = path
         self.clears_check_path(path, turn)
         self.location = location
+        self.point_value = 3
 
         return path, self.possible_moves, self.checked_path, long_path
 
@@ -221,6 +224,7 @@ class Queen(Chess_Piece):
 
         self.clears_check_path(path, turn)
         self.location = location
+        self.point_value = 9
         
         return path, self.possible_moves, self.checked_path, long_path
 
@@ -243,6 +247,7 @@ class King(Chess_Piece):
         poss = []
         
         self.location = location
+        self.point_value = 1000
 
         return path, poss, self.checked_path, long_path
 
@@ -253,6 +258,7 @@ class Pawn(Chess_Piece):
         super().__init__(colour, graphic)
         self.diagonals = None
         self.en_passant = False
+        self.point_value = 1
         
     def available_moves(self, board, interpreted_coords, turn, location):
         x = interpreted_coords[0]
@@ -383,5 +389,3 @@ KING_LOCATION = {WHITE : [4, 0], BLACK : [4, 7]}
 PIECEDICT = {WHITE : {Rook : "♖", Knight : "♘", Bishop : "♗", Queen : "♕", King : "♔", Pawn : "♙"}, 
              BLACK : {Rook : "♜", Knight : "♞", Bishop : "♝", Queen : "♛", King : "♚", Pawn : "♟"}}
 
-
-#fsf

@@ -1,77 +1,9 @@
-#Loads pathways needs to take turn as an input
-
-#fix being able to promote while in check.Promotion is a fundamental move - can't be commented out
-#as it crashes due to piece_class.Pawn indexing
-
-#MAKE THE MOVER MORE MODULAR, THEN UNCOMMENT OUT THE SPECIAL RULES ONE By ONE
-
-#Bug 27th Aug: if move to a square outside of the list, and then selecting the same piece and moving
-#somewhere different after it stops you, a bug happens. The mover needs to be more modular
-
-#Do more tests on pins
-
-#When a piece can't move it says 'you can't move there'. For pins, this means
-#the piece gets stuck. Should go back to select when this error occurs
-
-#Should be able to change the POSS dict top side. Is ONLY used for intersection
-#in checkmates
-
-#Pinning causes the recursion error. 1 solution:. change the path dicts so that they
-#contain the square of the pieces. This can then be used if there's an intersection,
-#checks if it's still check if the piece which can make the intersection makes it.
-#If so, then it is a pinned checkmate
-
-#Currently ai always castles.
-
-#error check the passant. Offers to move to own square move After the passant, then breaks code.
-#One improvment to passant would be to add to mover 'if board[move] != to empty'
-
-#En_passant is added to the move list for the next turn. For the current turn, if piece_class.Pawn_move list contains
-#an empty square, then that must be the square to passant to. DOESN'T WORK AS PATH CONTAINS MOVES FORWARDS Will still have to add something that
-#only accepts it after one turn.
-
-#Can en passant. Now needs something that removes the piece behind, and also removes the
-#possibility to passant after one turn has gone.
-
-#31.01.19: fixed the move track by adding 'False' into the check if check
-
-#Promotion has to go after the piece_class.Pawn and the move forward have been done. Then if on backrow, call the
-#pieces' promototion method (self.board[move].promotion).
-
-#29.01.19: Finished Castling. Now do Promotion, stalemate, draw by repetition, en passant. 
-
-#27.01.19: issue with move track in mover. Could cause problems - see note
-
-#Should now in the move method: if select piece = King, if castling (either direction) is True,
-#if player chooses '1' or '2', call new method which moves the rook and the king
-
-#For the castling_valid method, can pass in negative numbers.
-
-#Castling must be done top-side. Conditions that must be met for castling
-#to be added to possible moves:
-    #1. Not currently in check
-    #2. Not castling through check
-    #3. King and rook(s) haven't moved
-    #4. Inbetween spaces are empty
-
-#maybe path and poss are the same dictionaty, created bottom-side. Could include long path
-
-#Method for the pieces that removes possible moves if making those moves puts your king in check
-
-#After tnis may need to change the other check code
-
-#path dict may need to have piece_class.Pawn diagonals in it
-
-#path is 'check path', possible moves is what moves a piece can do.
-#Different because of piece_class.Pawns
-
-#Flatten list function
-
-
 
 import random
-import piece_class
 import time
+import piece_class
+import ai_chess
+
 
 class Game_Board():
     """A gameboard of 3x3, 4x4, 5x5, [...]"""
@@ -98,6 +30,8 @@ class Game_Board():
         self.selected_piece_poss = None
         self.move_square = None
         self.move_coords = None
+        
+        self.endgame = False
 
 
     def create_board(self):
@@ -151,31 +85,23 @@ class Game(Game_Board):
                 ai = ai_switch(ai)
         if response == 3:
             ai = True
-            self.aivai(ai)
+            outcome = self.aivai(ai)
+            
+            return outcome
                                 
         
     def aivai(self, ai):
         turn = WHITE
         
-        while True:
+        while self.endgame == False:
             self.mover(turn, ai)
-#            self.display_board(self.board)
+            self.display_board(self.board)
             turn = next_turn(turn)
-            if sum(COUNT.values()) == 100:
-                print("Simulation ended")
-                print((COUNT[WHITE] + COUNT[BLACK]), "checkmates, of which white: ",
-                      COUNT[WHITE]," and black :", COUNT[BLACK])
-                print(COUNT["draw by rep"], "draws by repetition.")
-                print(COUNT["draw due to insufficient"], "draw insufficients.")
-                print(COUNT["draw due to none in 50"], "draws due to none taken in 50 moves.")
-                print(COUNT["draw due to stalemate"], "draws by stalemate")
-                print(sum(COUNT.values()), "in total")
-                while True:
-                    l = ([y - x for x,y in zip(TIME_LIST,TIME_LIST[1:])])
-#                    print(l)
-                    print(max(l))
-                    print(min(l))
-                    input()
+        
+        outcome = COUNT
+        
+        return outcome
+
         
         
     def ask_letter(self, question, ai):
@@ -221,9 +147,8 @@ class Game(Game_Board):
     def print_message(self, message):
         """Prints messages. Makes it easier to turn off when running AI"""
 #        print(message)
-        pass        
-
-        
+        pass
+            
     def mover(self, turn, ai):          
         """Moves pieces"""
         
@@ -247,7 +172,10 @@ class Game(Game_Board):
                     if i.colour == turn:
                         if i.possible_moves != []:
                             piece_index.append(self.board.index(i))
-            select = random.choice(piece_index)
+                            
+            select, move = ai_chess.ai_capture(turn, piece_index, self.board,
+                                               self.coords)
+            
             selected_piece = self.board[select]
 #            print(("The piece you selected is: ",self.board[select], self.coords[select],"the pieces possible moves are: ", self.board[select].possible_moves))
         #updates attributes which can be accessed by the try/except when using AIvAI
@@ -278,8 +206,6 @@ class Game(Game_Board):
                 
             move_square = self.board[move]
         else:
-            move = random.choice(self.board[select].possible_moves)
-            move = (move[0] + (move[1] * 8))
             move_square = self.board[move]
 #            print(("The square you have moved to is: ", move_square, self.coords[move]))
         self.move_square = move_square
@@ -365,6 +291,9 @@ class Game(Game_Board):
             #recursive function
             self.mover(turn, ai)
             
+        if self.endgame == True:
+            return None
+            
         opposite_turn = next_turn(turn)
         
         if captured == None:
@@ -433,8 +362,8 @@ class Game(Game_Board):
             self.board[counter] = (i(BLACK, piece_class.PIECEDICT[BLACK][i]))
             counter += 1
 
-#        self.board[63] = self.empty
-#        self.board[62] = self.empty
+#        self.board[12] = self.empty
+#        self.board[52] = self.empty
 #        self.board[61] = self.empty
 #        self.board[60] = self.empty
 #        self.board[59] = self.empty
@@ -561,9 +490,10 @@ class Game(Game_Board):
                     COUNT[turn] += 1
                     print(sum(COUNT.values()))
                     print("Checkmate.", turn, "wins.")
-                    self.display_board(self.board)
-                    self.resets_attributes()
-                    self.main(3)
+                    self.endgame = True
+#                    self.display_board(self.board)
+#                    self.resets_attributes()
+#                    self.main(3)
 #                    Game(8, 3)
                            
     
@@ -630,10 +560,11 @@ class Game(Game_Board):
             #while True:
              #   self.display_board(self.board)
               #  input("Checkmate.", turn, "wins.")
-            self.display_board(self.board)
-#            Game(8, 3)
-            self.resets_attributes()
-            self.main(3)
+            self.endgame = True
+#            self.display_board(self.board)
+##            Game(8, 3)
+#            self.resets_attributes()
+#            self.main(3)
             
     def mate_normal(self, turn):
         """Tests for the most usual checkmate"""
@@ -648,14 +579,15 @@ class Game(Game_Board):
                 COUNT[turn] += 1
                 print(sum(COUNT.values()))
                 print("Checkmate.", turn, "wins.")
+                self.endgame = True
                 #input()
                 #while True:
                  #   self.display_board(self.board)
                   #  input("Checkmate.", turn, "wins.")
-                self.display_board(self.board)
-#                Game(8, 3)
-                self.resets_attributes()
-                self.main(3)
+#                self.display_board(self.board)
+##                Game(8, 3)
+#                self.resets_attributes()
+#                self.main(3)
                     
     def draw_by_rep(self, turn, select, move):
         """Checks if there's a draw by repitition"""
@@ -677,8 +609,9 @@ class Game(Game_Board):
         if self.cap_counter > 100:
             self.draw_loop("draw due to none in 50")
         
-#        if self.board.COUNT(self.empty) == 62:
-#            self.draw_loop("draw due to insufficient")
+        if self.board.count(self.empty) == 62:
+            self.draw_loop("draw due to insufficient")
+
             
         if self.board.count(self.empty) == 61:
             for i in self.board:
@@ -689,14 +622,16 @@ class Game(Game_Board):
                         self.draw_loop("draw due to insufficient")
                                     
     def draw_loop(self, draw_type):
-        while True: 
-            COUNT[draw_type] += 1
-            print(sum(COUNT.values()))
-            print(draw_type)
-            self.display_board(self.board)
-#            Game(8, 3)
-            self.resets_attributes()
-            self.main(3)
+        self.endgame = True
+        COUNT[draw_type] += 1
+#        while True: 
+#            COUNT[draw_type] += 1
+#            print(sum(COUNT.values()))
+#            print(draw_type)
+#            self.display_board(self.board)
+##            Game(8, 3)
+#            self.resets_attributes()
+#            self.main(3)
             
     def stalemate(self, turn):
         move_list = []
@@ -957,3 +892,4 @@ CAPTURE_DICT = {WHITE : [], BLACK : []}
 
 COUNT = {"checkmate" : 0, "draw by rep" : 0, "draw due to insufficient" : 0,
          "draw due to none in 50" : 0, "draw due to stalemate" : 0, WHITE : 0, BLACK : 0}
+
