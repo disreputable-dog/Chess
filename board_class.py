@@ -32,6 +32,8 @@ class Game_Board():
         self.move_coords = None
         
         self.endgame = False
+        self.recursive_move = []
+        self.county = 0
 
 
     def create_board(self):
@@ -69,7 +71,7 @@ class Game(Game_Board):
         if response == 1:
             self.display_board(self.board)
             while True:
-                self.mover(turn, ai)
+                self.mover(turn, ai, recurse=False)
                 self.display_board(self.board)
                 #print(turn, " path dict is: ", self.path_dict)
                 #print(turn, " poss dict is: ", self.poss_dict[turn])
@@ -79,7 +81,7 @@ class Game(Game_Board):
         if response == 2:
             self.display_board(self.board)
             while True:
-                self.mover(turn, ai)
+                self.mover(turn, ai, recurse=False)
                 self.display_board(self.board)
                 turn = next_turn(turn)
                 ai = ai_switch(ai)
@@ -94,8 +96,8 @@ class Game(Game_Board):
         turn = WHITE
         
         while self.endgame == False:
-            self.mover(turn, ai)
-            self.display_board(self.board)
+            self.mover(turn, ai, recurse=False)
+#            self.display_board(self.board)
             turn = next_turn(turn)
         
         outcome = COUNT
@@ -148,8 +150,23 @@ class Game(Game_Board):
         """Prints messages. Makes it easier to turn off when running AI"""
 #        print(message)
         pass
+    
+    def recurse_fix(self, recurse):
+        """Fixes the problem where the mover method infinetly recurses due to
+        the computer trying to capture a piece while in check"""
+        
+        #Removes the recursive moves from <piece>.possible_moves
+        if recurse == True:
+#            print(self.recursive_move)
+            for i in self.recursive_move:
+                select = self.recursive_move[self.recursive_move.index(i)][0]
+                move = self.recursive_move[self.recursive_move.index(i)][1]
+#                print(select, move, self.board[select], self.board[move])
+                self.board[select].possible_moves.remove(self.coords[move])
+        else:
+            self.recursive_move = []
             
-    def mover(self, turn, ai):          
+    def mover(self, turn, ai, recurse):          
         """Moves pieces"""
         
         if ai == False:
@@ -287,9 +304,11 @@ class Game(Game_Board):
             self.loads_pathways(turn)
             self.king_adjust(WHITE)
             self.king_adjust(BLACK)
+            self.recursive_move.append([select, move])
+            self.recurse_fix(recurse)
 
             #recursive function
-            self.mover(turn, ai)
+            self.mover(turn, ai, recurse=True)
             
         if self.endgame == True:
             return None
@@ -892,4 +911,3 @@ CAPTURE_DICT = {WHITE : [], BLACK : []}
 
 COUNT = {"checkmate" : 0, "draw by rep" : 0, "draw due to insufficient" : 0,
          "draw due to none in 50" : 0, "draw due to stalemate" : 0, WHITE : 0, BLACK : 0}
-

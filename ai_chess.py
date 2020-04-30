@@ -15,10 +15,9 @@ def ai_capture(turn, piece_index, board, coords):
     
     for i in piece_index:
         for y in board[i].possible_moves:
-            if board[i].graphic == piece_class.PIECEDICT[turn][piece_class.King]:
-                if board[coords.index(y)] != "  ":
-                    if board[coords.index(y)].colour != turn:
-                        piece_move_d[board[coords.index(y)].point_value] = [i, coords.index(y)]
+            if board[coords.index(y)] != "  ":
+                if board[coords.index(y)].colour != turn:
+                    piece_move_d[board[coords.index(y)].point_value] = [i, coords.index(y)]
                  
 
     #Toggle this if you want both colours to make capture moves
@@ -31,8 +30,8 @@ def ai_capture(turn, piece_index, board, coords):
         move = (move[0] + (move[1] * 8))
     
     #Toggle this if you want random moves
-#        select = random.choice(piece_index)
-#        move = random.choice(self.board[select].possible_moves)
-#        move = (move[0] + (move[1] * 8))
+#    select = random.choice(piece_index)
+#    move = random.choice(board[select].possible_moves)
+#    move = (move[0] + (move[1] * 8))
     
     return select, move
