@@ -257,7 +257,6 @@ class Pawn(Chess_Piece):
     def __init__(self, colour, graphic):
         super().__init__(colour, graphic)
         self.diagonals = None
-        self.en_passant = False
         self.point_value = 1
         
     def available_moves(self, board, interpreted_coords, turn, location):
@@ -276,10 +275,6 @@ class Pawn(Chess_Piece):
 
         self.possible_moves = [pawn_move]
         self.possible_moves.append(pawn_capture)
-            
-        #Need to uncomment this out for it to work
-        #if self.en_passant != False:
-            #self.possible_moves.append([self.en_passant])
         
         self.possible_moves = [item for sublist in self.possible_moves for item in sublist]
         self.possible_moves = [i for i in self.possible_moves if i != []]

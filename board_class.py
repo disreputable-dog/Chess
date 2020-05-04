@@ -34,6 +34,9 @@ class Game_Board():
         self.endgame = False
         self.recursive_move = []
         self.county = 0
+        self.two_forward = []
+        self.passant_move = []
+        self.recurse_passant = []
 
 
     def create_board(self):
@@ -150,6 +153,7 @@ class Game(Game_Board):
         """Prints messages. Makes it easier to turn off when running AI"""
 #        print(message)
         pass
+
     
     def recurse_fix(self, recurse):
         """Fixes the problem where the mover method infinetly recurses due to
@@ -162,12 +166,24 @@ class Game(Game_Board):
                 select = self.recursive_move[self.recursive_move.index(i)][0]
                 move = self.recursive_move[self.recursive_move.index(i)][1]
 #                print(select, move, self.board[select], self.board[move])
+                if self.passant_move != []:
+                    self.board[select].possible_moves.append(self.passant_move)
+                    self.recurse_passant = self.passant_move
+                    print(self.passant_move)
+                    print(self.recurse_passant)
+                    print(move)
+                    print(self.coords[move])
+                    print(self.board[select].possible_moves)
                 self.board[select].possible_moves.remove(self.coords[move])
         else:
             self.recursive_move = []
             
+            
     def mover(self, turn, ai, recurse):          
         """Moves pieces"""
+        
+        self.castling(turn, ai)
+        self.en_passant(turn)
         
         if ai == False:
             x, y = self.ask_chess_coords("SELECT - Choose chess coord here: ")
@@ -191,26 +207,16 @@ class Game(Game_Board):
                             piece_index.append(self.board.index(i))
                             
             select, move = ai_chess.ai_capture(turn, piece_index, self.board,
-                                               self.coords)
+                                               self.coords, self.passant_move)
             
             selected_piece = self.board[select]
 #            print(("The piece you selected is: ",self.board[select], self.coords[select],"the pieces possible moves are: ", self.board[select].possible_moves))
+        
         #updates attributes which can be accessed by the try/except when using AIvAI
         self.selected_piece = self.board[select]
         self.selected_piece_coords = self.coords[select]
         self.selected_piece_poss = self.board[select].possible_moves
 
-        #Offers castling if possible
-#        if self.board[select] == self.board[self.coords.index(piece_class.KING_LOCATION[turn])]:
-#            if self.board[select].move_track == False:
-#                if self.castling(turn, ai):
-#                    self.loads_pathways(turn)
-#                    self.king_adjust(WHITE)
-#                    self.king_adjust(BLACK)
-#                    
-#                    return None
-               
-        
         
         if ai == False:
             x, y = self.ask_chess_coords("MOVE - Choose chess coord here: ")
@@ -224,31 +230,25 @@ class Game(Game_Board):
             move_square = self.board[move]
         else:
             move_square = self.board[move]
-#            print(("The square you have moved to is: ", move_square, self.coords[move]))
+        
+        #removes the pawn if taken by en_passant
+        if self.board[select].graphic == piece_class.PIECEDICT[turn][piece_class.Pawn]:
+            if self.coords[move] == self.passant_move:
+                if turn == "white":
+                    self.board[move-8] = self.empty
+                if turn == "black":
+                    self.board[move+8] = self.empty
+
+        self.castling_implement(turn, select, move)        
+
         self.move_square = move_square
         self.move_coords = self.coords[move]
             
-            
-
-# =============================================================================
-#         if self.board[select].graphic == piece_class.PIECEDICT[turn][piece_class.Pawn]:
-#             if move_coords == self.board[select].en_passant:
-#                 if turn == WHITE:
-#                     self.board[move - 8] = self.empty
-#                 else:
-#                     self.board[move + 8] = self.empty
-# 
-# =============================================================================
 
         #Offers promotion if possible        
         if self.board[select].graphic == piece_class.PIECEDICT[turn][piece_class.Pawn] and self.coords[move] in BACK_ROW_DICT[turn]:
             promotion = self.board[select].promotion(turn, ai)
             self.board[select] = promotion
-            #print("promotion in game class is: ", promotion)
-            
-        #print(self.board[select], self.coords[select], self.coords[move])
-        
-        #print("self.board[select] = ",self.board[select], "self.board[move] = ",self.board[move])
         
         if self.board[move] != self.empty:
             captured = self.board[move].graphic
@@ -257,28 +257,6 @@ class Game(Game_Board):
         
         self.board[move] = self.board[select]
         self.board[select] = self.empty
-    
-        
-
-        #Sets the piece attribute 'en_passant' to true if conditions met Ready for the next turn
-        #if board[move] != to empty
-         #   if self.board[move].graphic == piece_class.PIECEDICT[turn][piece_class.Pawn]:
-          #      if self.coords[move] in EN_PASSANT_DICT[turn]:
-           #         if self.board[move].move_track == False:
-            #            if self.board[(move + 1)] != self.empty:
-             #               if self.board[(move + 1)].graphic == piece_class.PIECEDICT[opposite_turn][piece_class.Pawn] and self.coords[move + 1] in EN_PASSANT_DICT[turn]:
-              #                  if turn == BLACK:
-               #                     self.board[(move + 1)].en_passant = self.coords[move + 8]
-                #                else:
-                 #                   self.board[(move + 1)].en_passant = self.coords[move - 8]
-#
- #                       if self.board[(move - 1)] != self.empty:
-  #                          if self.board[(move - 1)].graphic == piece_class.PIECEDICT[opposite_turn][piece_class.Pawn] and self.coords[move - 1] in EN_PASSANT_DICT[turn]:
-   #                             if turn == BLACK:
-    #                                self.board[(move - 1)].en_passant = self.coords[move + 8]
-     #                           else:
-      #                              self.board[(move - 1)].en_passant = self.coords[move - 8]
-
 
         if self.coords[select] == piece_class.KING_LOCATION[turn]:
             piece_class.KING_LOCATION[turn] = self.coords[select]
@@ -287,19 +265,21 @@ class Game(Game_Board):
         #maybe just one with (turn) would work
         self.king_adjust(WHITE)
         self.king_adjust(BLACK)
-        
-#        if self.board[move] != self.empty:
-#            self.board[move].move_track = True
-        
-        REPETITION_PREV[turn] = [self.coords[select], self.coords[move]]
-        
+
         if self.checks_check(turn):
             self.print_message("Can't move there. That move puts/keeps you in check")
             self.print_message(('move is: ', self.board[move]))
             self.print_message(('select is: ', self.board[select]))
-#            self.board[move].move_track = False
             self.board[select] = selected_piece
             self.board[move] = move_square
+            
+            #Puts the pawn captured with en_passant back
+            if self.board[select].graphic == piece_class.PIECEDICT[turn][piece_class.Pawn]:
+                if self.coords[move] == self.passant_move:
+                    if turn == "white":
+                        self.board[move-8] = piece_class.Pawn(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Pawn])
+                    if turn == "black":
+                        self.board[move+8] = piece_class.Pawn(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Pawn])
             
             self.loads_pathways(turn)
             self.king_adjust(WHITE)
@@ -309,7 +289,20 @@ class Game(Game_Board):
 
             #recursive function
             self.mover(turn, ai, recurse=True)
-            
+        
+        if self.board[move] != self.empty:
+            if self.board[move].graphic == piece_class.PIECEDICT[turn][piece_class.Pawn]:
+                if self.coords[move] in EN_PASSANT_DICT[turn]:
+                    self.two_forward = self.coords[move]
+                else:
+                    self.two_forward = []
+            else:
+                self.two_forward = []
+        else:
+            self.two_forward = []
+
+        
+        #Ends the game after a checkmate before running the draw functions
         if self.endgame == True:
             return None
             
@@ -320,20 +313,15 @@ class Game(Game_Board):
         else:
             CAPTURE_DICT[opposite_turn].append(captured)
             self.cap_counter = 0
-            
+        
+        if self.board[move] != self.empty:
+            if self.board[move].move_track == False:
+                self.board[move].move_track = True
+        
         self.draw_by_rep(turn, select, move)
+        REPETITION_PREV[turn] = [self.coords[select], self.coords[move]]
         self.draw_by_insufficient()
         self.stalemate(turn)
-    
-        
-        #print("captured dict is: ", CAPTURE_DICT)
-
-        #if self.board[move] != self.empty:
-         #   if self.board[move].graphic == piece_class.PIECEDICT[turn][piece_class.Pawn]:
-          #      print(turn)
-           #     self.display_board(self.board)
-
-
 
       
     def display_board(self, board):
@@ -381,14 +369,13 @@ class Game(Game_Board):
             self.board[counter] = (i(BLACK, piece_class.PIECEDICT[BLACK][i]))
             counter += 1
 
-#        self.board[12] = self.empty
-#        self.board[52] = self.empty
-#        self.board[61] = self.empty
-#        self.board[60] = self.empty
-#        self.board[59] = self.empty
-#        self.board[58] = self.empty
+#        self.board[2] = self.empty
+#        self.board[3] = self.empty
 #        self.board[57] = self.empty
-#        self.board[56] = self.empty
+#        self.board[58] = self.empty
+#        self.board[5] = self.empty
+#        self.board[61] = self.empty
+#        self.board[59] = self.empty
 #        self.board[55] = self.empty
 #        self.board[54] = self.empty
 #        self.board[53] = self.empty
@@ -510,11 +497,7 @@ class Game(Game_Board):
                     print(sum(COUNT.values()))
                     print("Checkmate.", turn, "wins.")
                     self.endgame = True
-#                    self.display_board(self.board)
-#                    self.resets_attributes()
-#                    self.main(3)
-#                    Game(8, 3)
-                           
+                    
     
     def mate_pinned(self, turn):
         """Checks piece(s) are pinned to the king, and can't prevent checkmate"""
@@ -575,15 +558,9 @@ class Game(Game_Board):
             COUNT[turn] += 1
             print(sum(COUNT.values()))
             print("Checkmate.", turn, "wins.")
-            #input()
-            #while True:
-             #   self.display_board(self.board)
-              #  input("Checkmate.", turn, "wins.")
+
             self.endgame = True
-#            self.display_board(self.board)
-##            Game(8, 3)
-#            self.resets_attributes()
-#            self.main(3)
+
             
     def mate_normal(self, turn):
         """Tests for the most usual checkmate"""
@@ -599,14 +576,7 @@ class Game(Game_Board):
                 print(sum(COUNT.values()))
                 print("Checkmate.", turn, "wins.")
                 self.endgame = True
-                #input()
-                #while True:
-                 #   self.display_board(self.board)
-                  #  input("Checkmate.", turn, "wins.")
-#                self.display_board(self.board)
-##                Game(8, 3)
-#                self.resets_attributes()
-#                self.main(3)
+
                     
     def draw_by_rep(self, turn, select, move):
         """Checks if there's a draw by repitition"""
@@ -643,14 +613,6 @@ class Game(Game_Board):
     def draw_loop(self, draw_type):
         self.endgame = True
         COUNT[draw_type] += 1
-#        while True: 
-#            COUNT[draw_type] += 1
-#            print(sum(COUNT.values()))
-#            print(draw_type)
-#            self.display_board(self.board)
-##            Game(8, 3)
-#            self.resets_attributes()
-#            self.main(3)
             
     def stalemate(self, turn):
         move_list = []
@@ -768,86 +730,117 @@ class Game(Game_Board):
                 
             #self.board[original_location_index] = self.board[i]
             #self.board[i] = enemy_piece
+            
+            
+    def castling(self, turn, ai):
+        """Appends the possible move of the king if castling is possible"""
 
-
-    def move_track(self):
-        for i in self.board:
-            if i != self.empty:
-                print(i.move_track)
-
+        if self.board[self.coords.index(piece_class.KING_LOCATION[turn])].move_track == True:
+            return None
+                
+        
+        castling_queenside = [self.coords.index(piece_class.KING_LOCATION[turn]), self.coords.index(piece_class.KING_LOCATION[turn]) - 1,
+                         self.coords.index(piece_class.KING_LOCATION[turn]) - 2, self.coords.index(piece_class.KING_LOCATION[turn]) - 3,
+                         self.coords.index(piece_class.KING_LOCATION[turn]) - 4]
+        castling_kingside = [self.coords.index(piece_class.KING_LOCATION[turn]), self.coords.index(piece_class.KING_LOCATION[turn]) + 1,
+                         self.coords.index(piece_class.KING_LOCATION[turn]) + 2, self.coords.index(piece_class.KING_LOCATION[turn]) + 3]
+        
+        if self.castling_valid(turn, castling_kingside):
+            self.board[self.coords.index(piece_class.KING_LOCATION[turn])].possible_moves.append(self.coords[castling_kingside[2]])
+    
+        if self.castling_valid(turn, castling_queenside):
+            self.board[self.coords.index(piece_class.KING_LOCATION[turn])].possible_moves.append(self.coords[castling_queenside[2]])
+            
+                   
     def castling_valid(self, turn, direction):
+        """Checks if castling is possible"""
+        
         opposite_colour = next_turn(turn)
 
+    
         if self.board[direction[0]] and self.board[direction[-1]] != self.empty:
-            if (self.board[direction[0]].graphic) == piece_class.PIECEDICT[turn][piece_class.King] and (self.board[direction[-1]].graphic) == piece_class.PIECEDICT[turn][piece_class.Rook]:
+            if ((self.board[direction[0]].graphic) == piece_class.PIECEDICT[turn][piece_class.King] and 
+                (self.board[direction[-1]].graphic) == piece_class.PIECEDICT[turn][piece_class.Rook]):
                 if self.board[direction[0]].move_track == False and self.board[direction[-1]].move_track == False:
                     for i in self.path_dict[opposite_colour]:
                         if i in self.coords:
-                            if self.coords.index(i) in direction[0:3]:
+                            if self.coords.index(i) == direction[0]:
+                                
+                                return False
+                            
+                            if self.coords.index(i) == direction[1]:
+    
+                                return False
+                            
+                            if self.coords.index(i) == direction[2]:
                                 
                                 return False
                             
                     if len(direction) == 4:
-                        if self.board[direction[1]] and self.board[direction[2]] == self.empty:
+                        if self.board[direction[1]] == self.empty:
+                            if self.board[direction[2]] == self.empty:
                             
-                            return True
+                                return True
                         
-                    elif len(direction) == 5:
-                        if self.board[direction[1]] and self.board[direction[2]] and self.board[direction[3]] == self.empty:
+                    if len(direction) == 5:
+                        if self.board[direction[1]] == self.empty:
+                            if self.board[direction[2]] == self.empty:
+                                if self.board[direction[3]] == self.empty:
                             
-                            return True
-
+                                    return True
+    
         return False
-
-        
-
-    def castling(self, turn, ai):
-        castling_left = [self.coords.index(piece_class.KING_LOCATION[turn]), self.coords.index(piece_class.KING_LOCATION[turn]) - 1,
-                         self.coords.index(piece_class.KING_LOCATION[turn]) - 2, self.coords.index(piece_class.KING_LOCATION[turn]) - 3,
-                         self.coords.index(piece_class.KING_LOCATION[turn]) - 4]
-        castling_right = [self.coords.index(piece_class.KING_LOCATION[turn]), self.coords.index(piece_class.KING_LOCATION[turn]) + 1,
-                         self.coords.index(piece_class.KING_LOCATION[turn]) + 2, self.coords.index(piece_class.KING_LOCATION[turn]) + 3]
-        #print("castling left: ",castling_left)
-        #print("castling right: ",castling_right)
-        
-        if self.castling_valid(turn, castling_right):
-            if ai == True:
-                choice = "y"
-            else:
-                choice = input("Can castle kingside. Enter ""y"" to castle Kingside.")
-            if choice == "y":
-                 self.board[self.coords.index(piece_class.KING_LOCATION[turn]) + 2] = King(turn, piece_class.PIECEDICT[turn][piece_class.King])
-                 self.board[self.coords.index(piece_class.KING_LOCATION[turn]) + 1] = Rook(turn, piece_class.PIECEDICT[turn][piece_class.Rook])
-                 self.board[self.coords.index(piece_class.KING_LOCATION[turn])] = self.empty
-                 self.board[self.coords.index(piece_class.KING_LOCATION[turn]) + 3] = self.empty
-
-                 #Could remove these. Move track is only used for castling
-                 self.board[self.coords.index(piece_class.KING_LOCATION[turn]) + 1].move_track = True
-                 self.board[self.coords.index(piece_class.KING_LOCATION[turn]) + 2].move_track = True
-
-                 piece_class.KING_LOCATION[turn] = self.coords[self.coords.index(piece_class.KING_LOCATION[turn]) + 2]
-
-                 return True
-                
             
-        if self.castling_valid(turn, castling_left):
-            if ai == True:
-                choice = "y"
-            else:
-                choice = input("Can castle queenside. Enter ""y"" to castle Queenside.")
-            if choice == "y":
-                 self.board[self.coords.index(piece_class.KING_LOCATION[turn]) - 2] = King(turn, piece_class.PIECEDICT[turn][piece_class.King])
-                 self.board[self.coords.index(piece_class.KING_LOCATION[turn]) - 1] = Rook(turn, piece_class.PIECEDICT[turn][piece_class.Rook])
-                 self.board[self.coords.index(piece_class.KING_LOCATION[turn])] = self.empty
-                 self.board[self.coords.index(piece_class.KING_LOCATION[turn]) - 4] = self.empty
+    
+    def castling_implement(self, turn, select, move):
+        """Implements the castling by moving the rook"""
+        
+        if select == self.coords.index(piece_class.KING_LOCATION[turn]):
+            if self.board[self.coords.index(piece_class.KING_LOCATION[turn])].move_track == False:
+                if move in [2, 58]:
+                    self.board[move+1] = self.board[move-2]
+                    self.board[move-2] = self.empty
+                if move in [6, 62]:
+                    self.board[move-1] = self.board[move+1]
+                    self.board[move+1] = self.empty
+                    
+                    
+    def en_passant(self, turn):
+        
+        opposite_turn = next_turn(turn)
+        
+        if self.two_forward != []:
+            for i in self.board:
+                if i != self.empty:
+                    if i.graphic == piece_class.PIECEDICT[turn][piece_class.Pawn]:
+                        if self.coords[self.board.index(i)] in EN_PASSANT_DICT[opposite_turn]:
+                            if self.coords[self.board.index(i)+1] == self.two_forward:
+                                if self.coords[self.board.index(i)+9] != self.recurse_passant:
+                                    if turn == "white":
+                                        i.possible_moves.append(self.coords[self.board.index(i)+9])
+                                        self.passant_move = self.coords[self.board.index(i)+9]
+                                        return True
+                                if self.coords[self.board.index(i)-7] != self.recurse_passant:
+                                    if turn == "black":
+                                        i.possible_moves.append(self.coords[self.board.index(i)-7])
+                                        self.passant_move = self.coords[self.board.index(i)-7]
+                                        return True
+                                
+                            if self.coords[self.board.index(i)-1] == self.two_forward:
+                                if self.coords[self.board.index(i)+7] != self.recurse_passant:
+                                    if turn == "white":
+                                        i.possible_moves.append(self.coords[self.board.index(i)+7])
+                                        self.passant_move = self.coords[self.board.index(i)+7]
+                                        return True
+                                if self.coords[self.board.index(i)-9] != self.recurse_passant:
+                                    if turn == "black":
+                                        i.possible_moves.append(self.coords[self.board.index(i)-9])
+                                        self.passant_move = self.coords[self.board.index(i)-9]
+                                        return True
+    
+        self.passant_move = []
 
-                 self.board[self.coords.index(piece_class.KING_LOCATION[turn]) - 1].move_track = True
-                 self.board[self.coords.index(piece_class.KING_LOCATION[turn]) - 2].move_track = True
 
-                 piece_class.KING_LOCATION[turn] = self.coords[self.coords.index(piece_class.KING_LOCATION[turn]) - 2]
-
-                 return True
-             
     def resets_attributes(self):
         """Resets all attributes after a game has been played by AIvAI"""
         

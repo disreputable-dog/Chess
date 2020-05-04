@@ -21,7 +21,7 @@ while response not in range(1,4):
 
 count = 0
 
-for i in range(1000):
+for i in range(10000):
     board_obj = board_class.Game(8, response)
     outcome = board_obj.main(response)
     print(outcome)
@@ -29,7 +29,7 @@ for i in range(1000):
     print(count)
     
 
-#for i in range(1000):
+#for i in range(10000):
 #    try:    
 #        board_obj = board_class.Game(8, response)
 #        outcome = board_obj.main(response)
