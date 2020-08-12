@@ -8,7 +8,7 @@ import random
 import piece_class
 import board_class
     
-#keys are points, values are a 2 item list of index of move, select 
+#keys are points, values are a 2 item laist of index of move, select 
 piece_move_d = {}
 points = {"white" : 0, "black" : 0}
 minimax = []
