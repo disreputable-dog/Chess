@@ -194,19 +194,12 @@ class Game(Game_Board):
             selected_piece = self.board[select]
             self.print_message(self.board[select])
             self.chess_coord_moves(select)
-        else:
-            piece_index = []
-            for i in self.board:
-                if i != self.empty:
-                    if i.colour == turn:
-                        if i.possible_moves != []:
-                            piece_index.append(self.board.index(i))
-                            
-            select, move = ai_chess.ai_main(turn, piece_index, self.board,
+        else:                            
+            select, move = ai_chess.ai_main(turn, self.board,
                                             self.coords, self.passant_move)
             
             selected_piece = self.board[select]
-            print(("The piece you selected is: ",self.board[select], self.coords[select],"the pieces possible moves are: ", self.board[select].possible_moves))
+#            print(("The piece you selected is: ",self.board[select], self.coords[select],"the pieces possible moves are: ", self.board[select].possible_moves))
         
         #updates attributes which can be accessed by the try/except when using AIvAI
         self.selected_piece = self.board[select]
@@ -389,7 +382,7 @@ class Game(Game_Board):
 #        self.board[21] = piece_class.Bishop(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Bishop])
 #        self.board[27] = piece_class.Bishop(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Bishop])
 #        self.board[36] = piece_class.Knight(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Knight])
-#        self.board[41] = piece_class.Rook(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Rook])
+        self.board[42] = piece_class.Queen(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Queen])
 ##        self.board[32] = piece_class.Bishop(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Bishop])
 #        self.board[48] = piece_class.King(WHITE, piece_class.PIECEDICT[WHITE][piece_class.King])
 ##        self.board[59] = piece_class.King(BLACK, piece_class.PIECEDICT[BLACK][piece_class.King])

@@ -9,36 +9,53 @@ import piece_class
 import board_class
     
 #keys are points, values are a 2 item laist of index of move, select 
-piece_move_d = {}
 points = {"white" : 0, "black" : 0}
 minimax = []
 count = 0
 
 
-def ai_main(turn, piece_index, board, coords, passant):
+def ai_main(turn, board, coords, passant):
     """Calls the other AI functions"""
     
-    start_branch(turn, piece_index, board, coords, passant)
-    one_deep(turn, board, coords)
+    piece_index = return_moveable_pieces(board, turn)
+    piece_move_d = return_possible_moves(turn, board, coords, passant, piece_index)
+    max_points = return_max_points(turn, board, coords, piece_move_d)
     
-    select = random.choice(piece_index)
-    move = random.choice(board[select].possible_moves)
-    move = (move[0] + (move[1] * 8))
+#    one_deep(turn, board, coords, piece_move_d)
     
-    piece_move_d.clear()
-    print("minimax is: ", minimax)
-    minimax.clear()
-    
-    print("EXITING MODULE")
+#    select = random.choice(piece_index)
+#    move = random.choice(board[select].possible_moves)
+#    move = (move[0] + (move[1] * 8))
+#    
+#    print("minimax is: ", minimax)
+#    minimax.clear()
+#    
+#    print("EXITING MODULE")
+    while True:
+        input("Stop here.")
     
     return select, move
 
 
-def start_branch(turn, piece_index, board, coords, passant):
-    """Starts 1 MOVE DEEP. Generates a dict of all possible moves, with 
-    positions plus points"""
+def return_moveable_pieces(board, turn):
+    """Returns a list of all the location of every piece that has possible move(s)"""
+    
+    piece_index = []
+    for i in board:
+        if i != "  ":
+            if i.colour == turn:
+                if i.possible_moves != []:
+                    piece_index.append(board.index(i))
+    
+    return piece_index
 
+
+def return_possible_moves(turn, board, coords, passant, piece_index):
+    """Returns a dictionary whose keys are all possible moves, with values of
+    the point-value gained from making those moves"""
+    
     count = 0
+    piece_move_d = {}
     
     for i in piece_index:
         for y in board[i].possible_moves:
@@ -46,10 +63,13 @@ def start_branch(turn, piece_index, board, coords, passant):
             #For en_passant, which captures without touching the opponent piece
 #            passant_f(i, y, turn, passant, board, coords)
             if board[coords.index(y)] != "  ":
-                if board[coords.index(y)].colour != turn:
-                    piece_move_d[i, coords.index(y)] = board[coords.index(y)].point_value
-                 
-    print(count)
+                piece_move_d[i, coords.index(y)] = board[coords.index(y)].point_value
+            else:
+                piece_move_d[i, coords.index(y)] = 0
+    
+    print(count, "possible moves")
+    
+    return piece_move_d
     #Toggle this if you want both colours to make capture moves
 #    if piece_move_d != {}:
 #        select = piece_move_d[max(piece_move_d.keys())][0]
@@ -58,14 +78,22 @@ def start_branch(turn, piece_index, board, coords, passant):
 #        select = random.choice(piece_index)
 #        move = random.choice(board[select].possible_moves)
 #        move = (move[0] + (move[1] * 8))
-    
-    #Toggle this if you want random moves
-#    select = random.choice(piece_index)
-#    move = random.choice(board[select].possible_moves)
-#    move = (move[0] + (move[1] * 8))
         
+def return_max_points(turn, board, coords, piece_move_d):
+    print("piece_move_d: ",piece_move_d)
 
-def one_deep(turn, board, coords):
+
+
+
+
+
+
+
+
+
+
+
+def one_deep(turn, board, coords, piece_move_d):
     
     print("start here", turn, piece_move_d)
     
@@ -74,18 +102,23 @@ def one_deep(turn, board, coords):
         selected_piece = board[list(i)[0]]
         captured_piece = board[list(i)[1]]
 #        capture(turn, board, list(i)[1])
-        
+
+        display_board(board)        
         board[list(i)[1]] = board[list(i)[0]]
         board[list(i)[0]] = "  "
+        display_board(board)
         
         print(selected_piece, captured_piece)
-        minimax.append(piece_move_d[i])
-        print(minimax)
-        two_deep(turn, board, coords)
-        print("minimax after two_deep: ", minimax)
+#        minimax.append(piece_move_d[i])
+#        print(minimax)
+##        two_deep(turn, board, coords)
+#        print("minimax after two_deep: ", minimax)
         
         board[list(i)[0]] = selected_piece
         board[list(i)[1]] = captured_piece
+        
+        print("selected piece is", selected_piece)
+        print("captured piece is", captured_piece)
     
     print(points)
 
