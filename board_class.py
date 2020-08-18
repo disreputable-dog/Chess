@@ -2,7 +2,7 @@
 import random
 import time
 import piece_class
-import ai_chess
+#import ai_chess
 
 
 class Game_Board():
@@ -83,7 +83,7 @@ class Game(Game_Board):
                 turn = next_turn(turn)
         if response == 2:
             self.display_board(self.board)
-            while True:
+            while self.endgame == False:
                 self.mover(turn, ai, recurse=False)
                 self.display_board(self.board)
                 turn = next_turn(turn)
@@ -101,6 +101,7 @@ class Game(Game_Board):
         while self.endgame == False:
             self.mover(turn, ai, recurse=False)
 #            self.display_board(self.board)
+#            input()
             turn = next_turn(turn)
         
         outcome = COUNT
@@ -195,8 +196,7 @@ class Game(Game_Board):
             self.print_message(self.board[select])
             self.chess_coord_moves(select)
         else:                            
-            select, move = ai_chess.ai_main(turn, self.board,
-                                            self.coords, self.passant_move)
+            select, move = self.ai_main(turn)
             
             selected_piece = self.board[select]
 #            print(("The piece you selected is: ",self.board[select], self.coords[select],"the pieces possible moves are: ", self.board[select].possible_moves))
@@ -219,7 +219,7 @@ class Game(Game_Board):
             move_square = self.board[move]
         else:
             move_square = self.board[move]
-        
+        print("select is: ",select, "move is: ",move)
         #removes the pawn if taken by en_passant
         if self.board[select].graphic == piece_class.PIECEDICT[turn][piece_class.Pawn]:
             if self.coords[move] == self.passant_move:
@@ -357,12 +357,21 @@ class Game(Game_Board):
         for i in placers:
             self.board[counter] = (i(BLACK, piece_class.PIECEDICT[BLACK][i]))
             counter += 1
-
+        
+        
+#        self.board[0] = self.empty
+#        self.board[1] = self.empty
+#        self.board[2] = self.empty
+#        self.board[3] = self.empty
+#        self.board[4] = self.empty
+#        self.board[5] = self.empty
+#        self.board[6] = self.empty
+#        self.board[7] = self.empty
+#        self.board[8] = self.empty
+#        self.board[9] = self.empty
+#        self.board[10] = self.empty
 #        self.board[11] = self.empty
 #        self.board[12] = self.empty
-#        self.board[57] = self.empty
-#        self.board[58] = self.empty
-#        self.board[5] = self.empty
 #        self.board[61] = self.empty
 #        self.board[59] = self.empty
 #        self.board[55] = self.empty
@@ -372,17 +381,37 @@ class Game(Game_Board):
 #        self.board[51] = self.empty
 #        self.board[50] = self.empty
 #        self.board[49] = self.empty
-#        self.board[48] = piece_class.Bishop(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Bishop])
-#        self.board[(40-16)] = piece_class.Rook(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Rook])
-#        self.board[(41-16)] = piece_class.Rook(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Rook])
-##        self.board[(41-7)] = piece_class.Bishop(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Bishop])
-#        self.board[56] = piece_class.King(BLACK, piece_class.PIECEDICT[BLACK][piece_class.King])
-            
-#        self.board[18] = piece_class.Rook(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Rook])
-#        self.board[21] = piece_class.Bishop(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Bishop])
+#        self.board[63] = self.empty
+#        self.board[62] = self.empty
+#        self.board[58] = self.empty
+#        self.board[57] = self.empty
+#        self.board[56] = self.empty
+#        self.board[62-8] = self.empty
+#        self.board[63-8] = self.empty
+#        self.board[62] = self.empty
+#        self.board[63] = self.empty
+#        
+##        self.board[48] = piece_class.Bishop(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Bishop])
+##        self.board[(40-16)] = piece_class.Rook(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Rook])
+#        self.board[6] = piece_class.Knight(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Knight])
+#        self.board[7] = piece_class.King(WHITE, piece_class.PIECEDICT[WHITE][piece_class.King])
+###        self.board[(41-7)] = piece_class.Bishop(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Bishop])
+##        self.board[56] = piece_class.King(BLACK, piece_class.PIECEDICT[BLACK][piece_class.King])
+#            
+#        self.board[40] = piece_class.Rook(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Rook])
+#        self.board[28] = piece_class.Rook(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Rook])
+#        self.board[28+8] = piece_class.Rook(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Rook])
+#        self.board[31] = piece_class.Queen(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Queen])
+#        self.board[31+8] = piece_class.Rook(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Rook])
+#        self.board[27+(8*3)] = piece_class.Rook(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Rook])
+#        self.board[63] = piece_class.Rook(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Rook])
+#        self.board[9] = piece_class.Bishop(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Bishop])
+#        self.board[62] = piece_class.Knight(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Knight])
+        
+#        self.board[31] = piece_class.Bishop(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Bishop])
 #        self.board[27] = piece_class.Bishop(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Bishop])
 #        self.board[36] = piece_class.Knight(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Knight])
-        self.board[42] = piece_class.Queen(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Queen])
+#        self.board[42] = piece_class.Queen(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Queen])
 ##        self.board[32] = piece_class.Bishop(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Bishop])
 #        self.board[48] = piece_class.King(WHITE, piece_class.PIECEDICT[WHITE][piece_class.King])
 ##        self.board[59] = piece_class.King(BLACK, piece_class.PIECEDICT[BLACK][piece_class.King])
@@ -459,7 +488,6 @@ class Game(Game_Board):
 
         if piece_class.KING_LOCATION[opposite_colour] in self.path_dict[turn]:
             self.print_message("CHECK!")
-#            self.checkmate(turn)
             self.mate_double(turn)
             self.mate_pinned(turn)
             self.mate_normal(turn)
@@ -851,8 +879,128 @@ class Game(Game_Board):
     
         TIME_LIST.append((time.time() - start_time))
         print("--- %s seconds ---" % (time.time() - start_time))
+
+
+    def ai_main(self, turn):
+        """Calls the other AI functions"""
         
+        start_time = time.time()
         
+        piece_move = self.return_possible_moves(turn)
+        d_map = self.decision_tree(turn, piece_move)
+        select, move = self.optimum_move(turn, d_map)
+        
+        end_time = time.time()
+        print(end_time - start_time, "seconds.")
+#        print("turn is: ", turn)
+        
+#        select = random.choice(piece_index)
+#        move = random.choice(board[select].possible_moves)
+#        move = (move[0] + (move[1] * 8))
+        
+        return select, move
+    
+    
+    def return_possible_moves(self, turn):
+        """Returns a list of tuples where item 1 is select, item 2 is move, item 3 is
+        the point-value gained from making those moves"""
+        
+        piece_index = []
+        for i in self.board:
+            if i != "  ":
+                if i.colour == turn:
+                    if i.possible_moves != []:
+                        piece_index.append(self.board.index(i))
+        
+        count = 0
+        piece_move = []
+        
+        for i in piece_index:
+            for y in self.board[i].possible_moves:
+                count += 1
+                #For en_passant, which captures without touching the opponent piece
+    #            passant_f(i, y, turn, passant, board, coords)
+                if self.board[self.coords.index(y)] != "  ":
+                    piece_move.append((i, self.coords.index(y), self.board[self.coords.index(y)].point_value))
+                else:
+                    piece_move.append((i, self.coords.index(y), 0))
+        
+#        print(count, "possible moves for ",turn)
+        
+        return piece_move
+        #Toggle this if you want both colours to make capture moves
+    #    if piece_move != {}:
+    #        select = piece_move[max(piece_move.keys())][0]
+    #        move = piece_move[max(piece_move.keys())][1]
+    #    else:
+    #        select = random.choice(piece_index)
+    #        move = random.choice(board[select].possible_moves)
+    #        move = (move[0] + (move[1] * 8))
+            
+    def decision_tree(self, turn, piece_move):
+        
+        print("piece move is: ",piece_move)
+        d_map = {}
+        print("turn is :", turn)
+        
+        for i in piece_move:
+            select = self.board[i[0]]
+            move = self.board[i[1]]
+            points = self.board[i[2]]
+            
+            print(i[0], i[1], select, move)
+            
+            self.board[i[1]] = select
+            self.board[i[0]] = "  "
+            
+            self.loads_pathways(turn)
+            
+            #Checks if moving into check. If so, that branch isn't used
+            if self.checks_check(turn):
+                print("Moving into check at: ", i[0], i[1], select, move)
+                self.board[i[0]] = select
+                self.board[i[1]] = move
+                
+                self.loads_pathways(turn)
+            else:
+                opposite_turn = next_turn(turn)
+                opposite_response = self.return_possible_moves(opposite_turn)
+                
+                d_map[i] = opposite_response
+                
+                self.board[i[0]] = select
+                self.board[i[1]] = move
+                
+                self.loads_pathways(turn)
+        
+        print("d_map is: ",d_map)
+        
+        return d_map
+    
+    
+    def optimum_move(self, turn, d_map):
+        
+        optimal = []
+
+        for i in d_map:
+            max_move_points = i[2]
+            max_response_points = max([i[2] for i in d_map[i]])
+            optimal.append((max_move_points - max_response_points, i[0], i[1]))
+            
+        max_point = max([i[0] for i in optimal])
+        optimal = [i for i in optimal if i[0] == max_point]
+        
+        print("optimal is now: ", optimal)
+        
+        #randomly chooses from the list of optimal moves, if more than one
+        choice = optimal.index(random.choice(optimal))
+        choice = optimal[choice]
+        
+        select = choice[1]
+        move = choice[2]
+        
+        return select, move
+            
         
 
 #------------------------------------------------------------------------------------
