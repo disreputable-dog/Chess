@@ -881,14 +881,26 @@ class Game(Game_Board):
         print("--- %s seconds ---" % (time.time() - start_time))
 
 
+
+
+
+
+
     def ai_main(self, turn):
         """Calls the other AI functions"""
         
         start_time = time.time()
         
         piece_move = self.return_possible_moves(turn)
-        d_map = self.decision_tree(turn, piece_move)
-        select, move = self.optimum_move(turn, d_map)
+        
+        
+        tot_d_map = {}
+        #1 and 2 moves deep
+        for i in piece_move:
+            moves = self.decision_tree(turn, i)
+            tot_d_map[i] = moves[i]
+
+        select, move = self.optimum_move(turn, tot_d_map)
         
         end_time = time.time()
         print(end_time - start_time, "seconds.")
@@ -937,41 +949,37 @@ class Game(Game_Board):
     #        move = random.choice(board[select].possible_moves)
     #        move = (move[0] + (move[1] * 8))
             
-    def decision_tree(self, turn, piece_move):
+    def decision_tree(self, turn, i):
         
-        print("piece move is: ",piece_move)
         d_map = {}
         print("turn is :", turn)
+    
+        select = self.board[i[0]]
+        move = self.board[i[1]]
+        print(i[0], i[1], select, move)
         
-        for i in piece_move:
-            select = self.board[i[0]]
-            move = self.board[i[1]]
-            points = self.board[i[2]]
-            
-            print(i[0], i[1], select, move)
-            
-            self.board[i[1]] = select
-            self.board[i[0]] = "  "
+        self.board[i[1]] = select
+        self.board[i[0]] = "  "
+        
+        self.loads_pathways(turn)
+        
+        #Checks if moving into check. If so, that branch isn't used
+        if self.checks_check(turn):
+            print("Moving into check at: ", i[0], i[1], select, move)
+            self.board[i[0]] = select
+            self.board[i[1]] = move
             
             self.loads_pathways(turn)
+        else:
+            opposite_turn = next_turn(turn)
+            opposite_response = self.return_possible_moves(opposite_turn)
             
-            #Checks if moving into check. If so, that branch isn't used
-            if self.checks_check(turn):
-                print("Moving into check at: ", i[0], i[1], select, move)
-                self.board[i[0]] = select
-                self.board[i[1]] = move
-                
-                self.loads_pathways(turn)
-            else:
-                opposite_turn = next_turn(turn)
-                opposite_response = self.return_possible_moves(opposite_turn)
-                
-                d_map[i] = opposite_response
-                
-                self.board[i[0]] = select
-                self.board[i[1]] = move
-                
-                self.loads_pathways(turn)
+            d_map[i] = opposite_response
+            
+            self.board[i[0]] = select
+            self.board[i[1]] = move
+            
+            self.loads_pathways(turn)
         
         print("d_map is: ",d_map)
         
