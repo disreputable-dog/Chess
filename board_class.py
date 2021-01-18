@@ -358,69 +358,10 @@ class Game(Game_Board):
             self.board[counter] = (i(BLACK, piece_class.PIECEDICT[BLACK][i]))
             counter += 1
         
-        
-#        self.board[0] = self.empty
-#        self.board[1] = self.empty
-#        self.board[2] = self.empty
-#        self.board[3] = self.empty
-#        self.board[4] = self.empty
-#        self.board[5] = self.empty
-#        self.board[6] = self.empty
-#        self.board[7] = self.empty
-#        self.board[8] = self.empty
-#        self.board[9] = self.empty
-#        self.board[10] = self.empty
-#        self.board[11] = self.empty
-#        self.board[12] = self.empty
-#        self.board[61] = self.empty
-#        self.board[59] = self.empty
-#        self.board[55] = self.empty
-#        self.board[54] = self.empty
-#        self.board[53] = self.empty
-#        self.board[52] = self.empty
-#        self.board[51] = self.empty
-#        self.board[50] = self.empty
-#        self.board[49] = self.empty
+#       Scenario 1
+        self.board[63-15] = self.empty
+
 #        self.board[63] = self.empty
-#        self.board[62] = self.empty
-#        self.board[58] = self.empty
-#        self.board[57] = self.empty
-#        self.board[56] = self.empty
-#        self.board[62-8] = self.empty
-#        self.board[63-8] = self.empty
-#        self.board[62] = self.empty
-#        self.board[63] = self.empty
-#        
-##        self.board[48] = piece_class.Bishop(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Bishop])
-##        self.board[(40-16)] = piece_class.Rook(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Rook])
-#        self.board[6] = piece_class.Knight(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Knight])
-#        self.board[7] = piece_class.King(WHITE, piece_class.PIECEDICT[WHITE][piece_class.King])
-###        self.board[(41-7)] = piece_class.Bishop(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Bishop])
-##        self.board[56] = piece_class.King(BLACK, piece_class.PIECEDICT[BLACK][piece_class.King])
-#            
-#        self.board[40] = piece_class.Rook(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Rook])
-#        self.board[28] = piece_class.Rook(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Rook])
-#        self.board[28+8] = piece_class.Rook(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Rook])
-#        self.board[31] = piece_class.Queen(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Queen])
-#        self.board[31+8] = piece_class.Rook(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Rook])
-#        self.board[27+(8*3)] = piece_class.Rook(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Rook])
-#        self.board[63] = piece_class.Rook(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Rook])
-#        self.board[9] = piece_class.Bishop(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Bishop])
-#        self.board[62] = piece_class.Knight(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Knight])
-        
-#        self.board[31] = piece_class.Bishop(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Bishop])
-#        self.board[27] = piece_class.Bishop(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Bishop])
-#        self.board[36] = piece_class.Knight(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Knight])
-#        self.board[42] = piece_class.Queen(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Queen])
-##        self.board[32] = piece_class.Bishop(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Bishop])
-#        self.board[48] = piece_class.King(WHITE, piece_class.PIECEDICT[WHITE][piece_class.King])
-##        self.board[59] = piece_class.King(BLACK, piece_class.PIECEDICT[BLACK][piece_class.King])
-#        self.board[49] = piece_class.Pawn(WHITE, piece_class.PIECEDICT[WHITE][piece_class.Pawn])
-#        self.board[50] = piece_class.Queen(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Queen])
-#        self.board[59] = piece_class.Bishop(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Bishop])
-#        self.board[52] = piece_class.Pawn(BLACK, piece_class.PIECEDICT[BLACK][piece_class.Pawn])
-#    
-#        del self.board[64:]
 
         return self.board
 
@@ -899,7 +840,8 @@ class Game(Game_Board):
         for i in piece_move:
             moves = self.decision_tree(turn, i)
             tot_d_map[i] = moves[i]
-
+            
+#        print("tot_d_map is: ", tot_d_map)
         select, move = self.optimum_move(turn, tot_d_map)
         
         end_time = time.time()
@@ -972,6 +914,8 @@ class Game(Game_Board):
             self.loads_pathways(turn)
         else:
             opposite_turn = next_turn(turn)
+            #After the board is set with the possible move, check the opponents
+            #response to that move
             opposite_response = self.return_possible_moves(opposite_turn)
             
             d_map[i] = opposite_response
