@@ -359,7 +359,7 @@ class Game(Game_Board):
             counter += 1
         
 #       Scenario 1
-        self.board[63-15] = self.empty
+        # self.board[63-15] = self.empty
 
 #        self.board[63] = self.empty
 
